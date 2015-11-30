@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Vancouver Places of Interests</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Lato:100,300,400">
+
+</head>
+<body>
+
+    <!-- header with hamburger button -->
+    <header>
+        <div id="hamburger">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </header>
+
+    <!-- sidebar -->
+    <nav>
+        <div id="filter">
+            <form onkeypress="return event.keyCode != 13;">
+                <input data-bind="textInput: filter" type="text" name="filter" placeholder="type here to filter" class="filter">
+            </form>
+        </div>
+        <div id="list">
+            <ul data-bind="foreach: locations">
+                <li data-bind="text: name, visible: display, click: $parent.locationClicked, css: {itemSelected: $parent.currentLocation() === $data}"></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- main map area -->
+    <main id="content"></main>
+
+    <!-- load js -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js'></script>
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="js/hamburger.js"></script>
+    <script src='js/flickrclient.js'></script>
+    <script src="js/map.js"></script>
+    <script src="js/app.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJbIsfI7vhAFXTkvMJgvUhUsOLAk9BJ2c&callback=initMap"></script>
+
+</body>
+</html>
