@@ -1,5 +1,7 @@
 // MVVM for managing locations using Knockout.js
 
+'use strict';
+
 var locationsList = [
 	{name: 'Stanley Park', location: {lat: 49.301705, lng: -123.1417}},
 	{name: 'Vancouver Seawall', location: {lat: 49.296004, lng: -123.128218}},
@@ -73,11 +75,18 @@ var LocationViewModel = function() {
 
 		// click associated marker to trigger all the info load
 		mapView.clickMarker(loc.marker());
+
+		// auto-hide sidebar if screen size is small
+		if (window.innerWidth < 500) {
+			$("#hamburger").click();
+		}
+
 	};
 
 	// filter
 	this.filter = ko.observable();
 	this.filter.subscribe(function(val) {
+
 		self.locations().forEach(function(loc) {
 
 			// set display variable
@@ -100,6 +109,7 @@ var LocationViewModel = function() {
 
 		// ask map to refresh
 		mapView.refresh();
+
 	});
 
 };

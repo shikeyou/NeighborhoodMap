@@ -1,10 +1,9 @@
 // MVC for managing the maps portion of this app
 
+'use strict';
+
 // model for google maps
 var mapModel = {
-	map: null,
-	infoWindow: null,
-	bounds: null,
 	markers: []
 };
 
@@ -14,69 +13,44 @@ var mapController = {
 	init: function() {
 
 		// create a new map
-		mapModel.map = new google.maps.Map(document.getElementById('content'));
+		mapView.map = new google.maps.Map(document.getElementById('content'));
 
 		// create bounds
-		mapModel.bounds = new google.maps.LatLngBounds();
+		mapView.bounds = new google.maps.LatLngBounds();
 
 		// create info window
-		mapModel.infoWindow = new google.maps.InfoWindow();
+		mapView.infoWindow = new google.maps.InfoWindow();
 
-		// add markers to map
-		this.__addMarkersToMapUsingLocations(locationViewModel.locations(), mapModel.map);
+		// create markers
+		this.__createMarkersForLocations(locationViewModel.locations());
 
-		// refresh map
-		mapView.refresh(true);
+		// init map view
+		mapView.init();
 	},
 
-	__addMarkersToMapUsingLocations: function(locations, map) {
+	__createMarkersForLocations: function(locations) {
 
 		var self = this;
 
-		// loop through all locations to add markers to map
+		// loop through all locations to create markers
 		locations.forEach(function(loc) {
 
 			// create marker
 			var marker = new google.maps.Marker({
 				position: loc.location(),
-				title: loc.name(),
-				map: map
+				title: loc.name()
 			});
 			mapModel.markers.push(marker);
+
+			// add in our own attributes to keep track of state
+			marker.isVisible = true;
+			marker.isSelected = false;
 
 			// set marker for this location and set location for this marker
 			// this is the main two-way reference between location and marker
 			loc.marker(marker);
 			marker.location = loc;
 
-			// add in our own attributes to keep track of state
-			self.setMarkerVisibility(marker, true);
-			self.setMarkerSelected(marker, false);
-
-			// add click listener for this marker
-			self.__addClickListenerForMarker(marker, locationViewModel);
-
-		});
-
-	},
-
-	__addClickListenerForMarker: function(marker, viewmodel) {
-
-		var self = this;
-
-		marker.addListener('click', function() {
-
-			// update the viewmodel by setting the current location
-			viewmodel.currentLocation(marker.location);
-
-			// set selected to true only for this marker
-			mapModel.markers.forEach(function(m) {
-				self.setMarkerSelected(m, false);
-			});
-			self.setMarkerSelected(marker, true);
-
-			// refresh map
-			mapView.refresh();
 		});
 
 	},
@@ -87,6 +61,10 @@ var mapController = {
 
 	setMarkerSelected: function(marker, isSelected) {
 		marker.isSelected = isSelected;
+	},
+
+	getMarkers: function() {
+		return mapModel.markers;
 	}
 
 };
@@ -98,18 +76,71 @@ var mapView = {
 	NUM_FLICKR_PHOTOS: 4,
 	NUM_FLICKR_PHOTOS_PER_ROW: 2,
 
-	refresh: function(centerMap) {
+	map: null,
+	infoWindow: null,
+	bounds: null,
+
+	init: function() {
 
 		var self = this;
 
-		// set default for centerMap parameter
-		centerMap = typeof centerMap !== 'undefined' ? centerMap : false;
+		// for each marker
+		var markers = mapController.getMarkers();
+		markers.forEach(function(m) {
+
+			// set map
+			m.setMap(self.map);
+
+			// add event handler
+			self.__addClickListenerForMarker(m);
+
+			// extend bounds
+			self.bounds.extend(m.getPosition())
+		});
+
+		// refresh map
+		self.refresh();
+
+		// center the map on init, to fit all markers using collected bounds
+		self.fitBounds();
+	},
+
+	__addClickListenerForMarker: function(marker, viewmodel) {
+
+		var self = this;
+
+		var markers = mapController.getMarkers();
+		marker.addListener('click', function() {
+
+			// update the location viewmodel by setting the current location
+			locationViewModel.currentLocation(marker.location);
+
+			// set selected to true only for this marker
+			markers.forEach(function(m) {
+				mapController.setMarkerSelected(m, false);
+			});
+			mapController.setMarkerSelected(marker, true);
+
+			// refresh map
+			self.refresh();
+		});
+
+	},
+
+	fitBounds: function() {
+		this.map.fitBounds(this.bounds);
+	},
+
+	refresh: function() {
+
+		var self = this;
 
 		// close info window first
-		mapModel.infoWindow.close();
+		self.infoWindow.close();
 
 		// loop through each marker
-		mapModel.markers.forEach(function(m) {
+		var markers = mapController.getMarkers();
+		markers.forEach(function(m) {
 
 			// set visibility
 			m.setVisible(m.isVisible);
@@ -153,8 +184,8 @@ var mapView = {
 				);
 
 				// open info window for this marker
-				mapModel.infoWindow.setContent(contentStr);
-				mapModel.infoWindow.open(mapModel.map, m);
+				self.infoWindow.setContent(contentStr);
+				self.infoWindow.open(self.map, m);
 
 			} else {
 
@@ -165,22 +196,17 @@ var mapView = {
 			}
 
 		});
-
-		// if requested, center the map to fit all markers using collected bounds
-		if (centerMap) {
-			mapModel.markers.forEach(function(m) {
-				// extend bounds using this marker
-				mapModel.bounds.extend(m.getPosition());
-			});
-			mapModel.map.fitBounds(mapModel.bounds);
-		}
-
 	},
 
 	clickMarker: function(marker) {
 		google.maps.event.trigger(marker, 'click');
 	}
 };
+
+// auto fit all markers to map view upon window resize
+window.onresize = function() {
+	mapView.fitBounds();
+}
 
 // function called by google maps once loading is done
 function initMap() {

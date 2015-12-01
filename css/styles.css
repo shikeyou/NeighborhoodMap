@@ -158,7 +158,7 @@ nav li a {
  * MEDIA QUERY
  *********************************/
 
-@media screen and (max-width: 400px) {
+@media screen and (max-width: 500px) {
 	/*smaller sidebars when screen is smaller*/
 	nav div#filter {
 		width: 150px;

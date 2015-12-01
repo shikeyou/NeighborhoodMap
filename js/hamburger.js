@@ -1,11 +1,13 @@
 // javascript to control behaviour when hamburger button is clicked
 
+'use strict';
+
 var isOpened;
 
 $(document).ready(function () {
 
     //decide whether to open the sidebar nav initially, depending on how big the window width is
-    isOpened = window.innerWidth > 400;
+    isOpened = window.innerWidth > 500;
 
     // callback when hamburger menu is clicked
     $("#hamburger").click(function () {

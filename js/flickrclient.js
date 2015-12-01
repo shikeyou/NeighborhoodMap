@@ -1,3 +1,5 @@
+'use strict';
+
 // singleton class to handle fetching of flickr photos using ajax
 var FlickrClient = (function () {
 
@@ -19,7 +21,7 @@ var FlickrClient = (function () {
 	    // encodes parameters and joins them together
 	    function escapeParameters(args) {
 
-	    	escapedArgs = [];
+	    	var escapedArgs = [];
 
 	        for (var key in args) {
 	        	if (args.hasOwnProperty(key)) {
